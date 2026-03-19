@@ -1,0 +1,14 @@
+node_modules/
+dist/
+
+# State database (committed by GitHub Actions, ignored locally)
+data/state.db
+data/state.db-shm
+data/state.db-wal
+
+# Personal config (example is committed, actual config is not)
+aztec-watch.config.yaml
+.env
+
+# Product docs / internal notes
+info/
