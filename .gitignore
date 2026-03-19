@@ -1,13 +1,12 @@
 node_modules/
 dist/
 
-# State database (committed by GitHub Actions, ignored locally)
+# State database — ignored locally, committed by GitHub Actions after each run
 data/state.db
 data/state.db-shm
 data/state.db-wal
 
-# Personal config (example is committed, actual config is not)
-aztec-watch.config.yaml
+# Never commit a .env file with actual secrets
 .env
 
 # Product docs / internal notes
