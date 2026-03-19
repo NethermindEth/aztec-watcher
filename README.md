@@ -169,6 +169,53 @@ docker run -d \
 
 ---
 
+## Testing your setup
+
+### Step 1 — send a test notification
+
+Before waiting for a real Aztec release, verify your credentials work:
+
+```bash
+# Set your credentials in the shell
+export SLACK_WEBHOOK_URL="https://hooks.slack.com/services/..."
+export TELEGRAM_BOT_TOKEN="123456:ABC-..."
+export TELEGRAM_CHAT_ID="-1001234567890"
+
+# Send a fake but realistic notification to all configured sinks
+npx tsx src/cli/index.ts test
+# or after building:
+node dist/cli/index.js test
+```
+
+This sends a fake `Aztec 4.1.0-rc.5 [TEST]` message using your first few configured packages. If you see it arrive in Slack or Telegram, credentials are correct and the format is exactly what real notifications will look like.
+
+### Step 2 — test real detection locally
+
+```bash
+# First run: seeds the state database with current npm versions, no notifications
+npx tsx src/cli/index.ts run
+
+# Delete the state database to simulate "never seen these versions before"
+rm data/state.db
+
+# Run again: now every package looks "new" and triggers a notification
+npx tsx src/cli/index.ts run
+```
+
+You'll receive a real notification with real current package versions. After this, subsequent runs will only notify when something actually changes.
+
+### Step 3 — trigger manually in GitHub Actions
+
+After pushing your config to your fork:
+
+1. Go to your fork → **Actions** tab
+2. Click **aztec-watch** in the left sidebar
+3. Click **Run workflow** → **Run workflow**
+
+You'll see the run in real time. If it passes and you got a notification, everything is working end to end.
+
+---
+
 ## Running via cron
 
 ```bash

@@ -64,7 +64,7 @@ function isStoreEmpty(store: VersionStore, config: AppConfig): boolean {
   return true;
 }
 
-function buildSinks(config: AppConfig): NotificationSink[] {
+export function buildSinks(config: AppConfig): NotificationSink[] {
   const sinks: NotificationSink[] = [];
 
   if (config.notify.slack?.webhook_url) {
