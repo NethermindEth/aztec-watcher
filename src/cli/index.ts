@@ -23,6 +23,7 @@ async function main(): Promise<void> {
       break;
     }
 
+    case 'init':
     case 'setup': {
       await runSetup();
       break;
@@ -39,12 +40,10 @@ async function main(): Promise<void> {
 
       const sinks = buildSinks(config);
       if (sinks.length === 0) {
-        console.error('[aztec-watch] No notification sinks configured. Add slack or telegram to your config.');
+        console.error('[aztec-watch] No notification sinks configured. Run `aztec-watch init` first.');
         process.exit(1);
       }
 
-      // Fake a realistic Aztec RC release using the first 4 packages in config
-      // (or however many are configured, up to 4)
       const watchedPackages = config.packages.slice(0, 4);
       const fakeOld = '4.1.0-rc.4';
       const fakeNew = '4.1.0-rc.5';
@@ -66,28 +65,31 @@ async function main(): Promise<void> {
       };
 
       console.log(`[test] Sending test notification to: ${sinks.map(s => s.name).join(', ')}`);
-      console.log(`[test] Fake event: "${fakeEvent.title}" (${fakeEvent.changes.length} package(s))`);
-
       await dispatchEvents([fakeEvent], sinks);
+      console.log('[test] Done. Check your Slack channel.');
+      break;
+    }
 
-      console.log('[test] Done. Check your Slack/Telegram for the test message.');
+    // No command → start the setup wizard (like create-next-app)
+    case undefined: {
+      await runSetup();
       break;
     }
 
     default: {
       console.log(`
-aztec-watch — npm package monitor for the Aztec Protocol ecosystem
+aztec-watch  ·  npm release monitor for the Aztec Protocol ecosystem
 
 Commands:
-  aztec-watch run     Poll npm and send notifications for any new versions
+  aztec-watch init    Interactive setup wizard  (also: aztec-watch setup)
+  aztec-watch run     Poll npm and send notifications for new versions
   aztec-watch test    Send a fake notification to verify your Slack setup
-  aztec-watch setup   Interactive setup wizard
 
 Environment:
   AZTEC_WATCH_CONFIG     Path to config file (default: aztec-watch.config.yaml)
   SLACK_WEBHOOK_URL      Slack incoming webhook URL
       `.trim());
-      process.exit(command ? 1 : 0);
+      process.exit(1);
     }
   }
 }
