@@ -1,8 +1,17 @@
 import type { NotificationSink, ReleaseEvent } from './types.js';
 
-// MarkdownV2 requires escaping: _ * [ ] ( ) ~ ` > # + - = | { } . !
+// Escape for MarkdownV2 regular text (bold, plain, etc.)
+// Must escape: _ * [ ] ( ) ~ ` > # + - = | { } . !
 function esc(text: string): string {
   return text.replace(/([_*[\]()~`>#+\-=|{}.!\\])/g, '\\$1');
+}
+
+// Escape for content INSIDE backtick code spans.
+// Telegram MarkdownV2 rule: inside `code`, only backtick and backslash need escaping.
+// Everything else (. - etc.) is treated literally — do NOT over-escape or backslashes
+// will appear visibly in the rendered message.
+function escCode(text: string): string {
+  return text.replace(/([`\\])/g, '\\$1');
 }
 
 function buildMessage(event: ReleaseEvent): string {
@@ -13,20 +22,22 @@ function buildMessage(event: ReleaseEvent): string {
 
   for (const c of event.changes) {
     const pkg = esc(c.packageName);
-    const from = c.oldVersion ? `\`${esc(c.oldVersion)}\`` : '_first detected_';
-    const to = `\`${esc(c.newVersion)}\``;
+    const from = c.oldVersion ? `\`${escCode(c.oldVersion)}\`` : '_first detected_';
+    const to = `\`${escCode(c.newVersion)}\``;
     lines.push(`${pkg}  ${from} → ${to}`);
   }
 
   if (event.schnorrWarning) {
     lines.push('');
     lines.push(`*⚠ Schnorr class ID changed — update before deploying accounts*`);
-    lines.push(`old: \`${esc(event.schnorrWarning.oldClassId)}\``);
-    lines.push(`new: \`${esc(event.schnorrWarning.newClassId)}\``);
+    lines.push(`old: \`${escCode(event.schnorrWarning.oldClassId)}\``);
+    lines.push(`new: \`${escCode(event.schnorrWarning.newClassId)}\``);
   }
 
   lines.push('');
   lines.push(`*Install:*`);
+  // Inside triple-backtick pre blocks: same rule as code spans, only ` and \ need escaping.
+  // npm install commands don't contain backticks so no escaping needed here.
   lines.push(`\`\`\`\n${event.installCommand}\n\`\`\``);
 
   return lines.join('\n');
