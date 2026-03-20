@@ -3,16 +3,18 @@ import type { NotificationSink, ReleaseEvent } from './types.js';
 function buildBlocks(event: ReleaseEvent): object[] {
   const blocks: object[] = [];
 
+  // Title
   blocks.push({
-    type: 'header',
-    text: { type: 'plain_text', text: event.title, emoji: true },
+    type: 'section',
+    text: { type: 'mrkdwn', text: `*${event.title}*` },
   });
 
-  blocks.push({ type: 'divider' });
-
+  // Package diff list
+  const maxLen = Math.max(...event.changes.map(c => c.packageName.length));
   const lines = event.changes.map(c => {
-    const from = c.oldVersion ? `\`${c.oldVersion}\`` : '_first detected_';
-    return `*${c.packageName}*  ${from} → \`${c.newVersion}\``;
+    const pad = ' '.repeat(maxLen - c.packageName.length + 2);
+    const from = c.oldVersion ?? 'new';
+    return `\`${c.packageName}\`${pad}${from}  →  ${c.newVersion}`;
   });
 
   blocks.push({
@@ -20,28 +22,22 @@ function buildBlocks(event: ReleaseEvent): object[] {
     text: { type: 'mrkdwn', text: lines.join('\n') },
   });
 
+  // Schnorr warning — compact single line
   if (event.schnorrWarning) {
-    blocks.push({ type: 'divider' });
+    const short = (id: string) => id.slice(0, 12) + '…';
     blocks.push({
-      type: 'section',
-      text: {
+      type: 'context',
+      elements: [{
         type: 'mrkdwn',
-        text: [
-          '*:warning: Schnorr class ID changed — update before deploying accounts*',
-          `old: \`${event.schnorrWarning.oldClassId}\``,
-          `new: \`${event.schnorrWarning.newClassId}\``,
-        ].join('\n'),
-      },
+        text: `:warning:  Schnorr class ID changed — redeploy accounts before going live\n\`${short(event.schnorrWarning.oldClassId)}\`  →  \`${short(event.schnorrWarning.newClassId)}\``,
+      }],
     });
   }
 
-  blocks.push({ type: 'divider' });
+  // Install command
   blocks.push({
     type: 'section',
-    text: {
-      type: 'mrkdwn',
-      text: `*Install:*\n\`\`\`\n${event.installCommand}\n\`\`\``,
-    },
+    text: { type: 'mrkdwn', text: `\`\`\`\n${event.installCommand}\n\`\`\`` },
   });
 
   return blocks;
