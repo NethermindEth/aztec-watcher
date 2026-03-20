@@ -16,9 +16,6 @@ packages:
 notify:
   slack:
     webhook_url: ${SLACK_WEBHOOK_URL}
-  telegram:
-    bot_token: ${TELEGRAM_BOT_TOKEN}
-    chat_id: ${TELEGRAM_CHAT_ID}
 
 # Collapse updates arriving within this window into a single digest message.
 # Aztec is a monorepo — all 60+ packages bump simultaneously.

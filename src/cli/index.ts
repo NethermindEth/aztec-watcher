@@ -80,14 +80,12 @@ aztec-watch — npm package monitor for the Aztec Protocol ecosystem
 
 Commands:
   aztec-watch run     Poll npm and send notifications for any new versions
-  aztec-watch test    Send a fake notification to verify your Slack/Telegram setup
+  aztec-watch test    Send a fake notification to verify your Slack setup
   aztec-watch setup   Interactive setup wizard
 
 Environment:
   AZTEC_WATCH_CONFIG     Path to config file (default: aztec-watch.config.yaml)
   SLACK_WEBHOOK_URL      Slack incoming webhook URL
-  TELEGRAM_BOT_TOKEN     Telegram bot token
-  TELEGRAM_CHAT_ID       Telegram chat ID
       `.trim());
       process.exit(command ? 1 : 0);
     }

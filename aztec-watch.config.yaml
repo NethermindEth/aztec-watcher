@@ -1,0 +1,17 @@
+packages:
+  - name: "@aztec/aztec.js"
+    tags: [rc, latest]
+  - name: "@aztec/accounts"
+    tags: [rc, latest]
+    check_schnorr_class_id: true
+  - name: "@aztec/wallets"
+    tags: [rc, latest]
+  - name: "@aztec/pxe"
+    tags: [rc, latest]
+
+notify:
+  slack:
+    webhook_url: ${SLACK_WEBHOOK_URL}
+
+digest_window_seconds: 300
+db_path: data/state.db

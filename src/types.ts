@@ -10,14 +10,8 @@ export interface SlackConfig {
   webhook_url: string;
 }
 
-export interface TelegramConfig {
-  bot_token: string;
-  chat_id: string;
-}
-
 export interface NotifyConfig {
   slack?: SlackConfig;
-  telegram?: TelegramConfig;
 }
 
 export interface AppConfig {

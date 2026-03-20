@@ -10,7 +10,7 @@ Aztec releases SDK updates frequently and without a fixed schedule. `aztec-watch
 
 - Monitors any `@aztec/*` and `@noir-lang/*` package across all dist-tags (`rc`, `devnet`, `latest`, `nightly`, etc.)
 - Collapses monorepo releases into **one message** instead of 60 individual pings
-- Notifies via **Slack** and/or **Telegram**
+- Notifies via **Slack**
 - Includes a ready-to-paste `npm install` command in every notification
 - Detects **Schnorr account class ID changes** — the silent breaking change that affects wallets and faucets on every RC bump
 - Runs on **GitHub Actions** for free — no server, no database to manage
@@ -42,9 +42,6 @@ packages:
 notify:
   slack:
     webhook_url: ${SLACK_WEBHOOK_URL}
-  telegram:
-    bot_token: ${TELEGRAM_BOT_TOKEN}
-    chat_id: ${TELEGRAM_CHAT_ID}
 ```
 
 Not sure which packages to watch? See [Monitored Packages](#monitored-packages) below.
@@ -53,13 +50,11 @@ Not sure which packages to watch? See [Monitored Packages](#monitored-packages) 
 
 Go to your fork → **Settings → Secrets and variables → Actions → New repository secret**.
 
-Add whichever of these you need:
+Add the following secret:
 
 | Secret name | Where to get it |
 |---|---|
 | `SLACK_WEBHOOK_URL` | [Create an incoming webhook](https://api.slack.com/messaging/webhooks) in your Slack workspace |
-| `TELEGRAM_BOT_TOKEN` | Message [@BotFather](https://t.me/BotFather) on Telegram → `/newbot` |
-| `TELEGRAM_CHAT_ID` | Add your bot to a group/channel, then [get the chat ID](https://stackoverflow.com/a/32572159) |
 
 > **Your secrets never leave GitHub.** The config file only contains `${ENV_VAR}` placeholder names. The actual values live exclusively in your repository secrets and are injected at workflow runtime — they are never written to any file or committed to the repo.
 
@@ -147,8 +142,6 @@ Set credentials in your shell before running:
 
 ```bash
 export SLACK_WEBHOOK_URL="https://hooks.slack.com/services/..."
-export TELEGRAM_BOT_TOKEN="123456:ABC-..."
-export TELEGRAM_CHAT_ID="-1001234567890"
 node dist/cli/index.js run
 ```
 
@@ -178,8 +171,6 @@ Before waiting for a real Aztec release, verify your credentials work:
 ```bash
 # Set your credentials in the shell
 export SLACK_WEBHOOK_URL="https://hooks.slack.com/services/..."
-export TELEGRAM_BOT_TOKEN="123456:ABC-..."
-export TELEGRAM_CHAT_ID="-1001234567890"
 
 # Send a fake but realistic notification to all configured sinks
 npx tsx src/cli/index.ts test
@@ -187,7 +178,7 @@ npx tsx src/cli/index.ts test
 node dist/cli/index.js test
 ```
 
-This sends a fake `Aztec 4.1.0-rc.5 [TEST]` message using your first few configured packages. If you see it arrive in Slack or Telegram, credentials are correct and the format is exactly what real notifications will look like.
+This sends a fake `Aztec 4.1.0-rc.5 [TEST]` message using your first few configured packages. If you see it arrive in Slack, credentials are correct and the format is exactly what real notifications will look like.
 
 ### Step 2 — test real detection locally
 

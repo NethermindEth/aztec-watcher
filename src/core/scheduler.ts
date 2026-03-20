@@ -3,7 +3,6 @@ import { VersionStore } from './store.js';
 import { pollAll } from './poller.js';
 import { groupIntoEvents, dispatchEvents } from '../notify/router.js';
 import { SlackSink } from '../notify/slack.js';
-import { TelegramSink } from '../notify/telegram.js';
 import type { NotificationSink } from '../notify/types.js';
 
 export async function runOnce(config: AppConfig): Promise<void> {
@@ -69,13 +68,6 @@ export function buildSinks(config: AppConfig): NotificationSink[] {
 
   if (config.notify.slack?.webhook_url) {
     sinks.push(new SlackSink(config.notify.slack.webhook_url));
-  }
-
-  if (config.notify.telegram?.bot_token && config.notify.telegram?.chat_id) {
-    sinks.push(new TelegramSink(
-      config.notify.telegram.bot_token,
-      config.notify.telegram.chat_id,
-    ));
   }
 
   return sinks;

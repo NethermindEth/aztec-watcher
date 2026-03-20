@@ -41,21 +41,15 @@ export async function runSetup(): Promise<void> {
   }
 
   // Step 3: Notification channel
-  const channel = await p.select({
-    message: 'Where should we send notifications?',
-    options: [
-      { value: 'slack',    label: 'Slack (incoming webhook)' },
-      { value: 'telegram', label: 'Telegram (bot)' },
-      { value: 'both',     label: 'Both Slack and Telegram' },
-      { value: 'none',     label: 'No notifications (dry run / test)' },
-    ],
+  const wantsSlack = await p.confirm({
+    message: 'Send notifications to Slack?',
+    initialValue: true,
   });
-  if (p.isCancel(channel)) { p.cancel('Setup cancelled.'); process.exit(0); }
+  if (p.isCancel(wantsSlack)) { p.cancel('Setup cancelled.'); process.exit(0); }
 
   let slackLine = '';
-  let telegramLine = '';
 
-  if (channel === 'slack' || channel === 'both') {
+  if (wantsSlack) {
     const url = await p.text({
       message: 'Slack webhook URL',
       placeholder: 'https://hooks.slack.com/services/...',
@@ -69,28 +63,8 @@ export async function runSetup(): Promise<void> {
     p.log.info('SLACK_WEBHOOK_URL saved to env for this session.\nFor GitHub Actions: add it as a repository secret named SLACK_WEBHOOK_URL');
   }
 
-  if (channel === 'telegram' || channel === 'both') {
-    const token = await p.text({
-      message: 'Telegram bot token  (from @BotFather)',
-      placeholder: '123456:ABC-DEF...',
-      validate: v => v.includes(':') ? undefined : 'Token format: 123456:ABC-...',
-    });
-    if (p.isCancel(token)) { p.cancel('Setup cancelled.'); process.exit(0); }
-
-    const chatId = await p.text({
-      message: 'Telegram chat ID  (group: -100..., channel: @username or -100...)',
-      placeholder: '-1001234567890',
-    });
-    if (p.isCancel(chatId)) { p.cancel('Setup cancelled.'); process.exit(0); }
-
-    process.env['TELEGRAM_BOT_TOKEN'] = token as string;
-    process.env['TELEGRAM_CHAT_ID'] = chatId as string;
-    telegramLine = `  telegram:\n    bot_token: \${TELEGRAM_BOT_TOKEN}\n    chat_id: \${TELEGRAM_CHAT_ID}`;
-    p.log.info('TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID saved to env for this session.\nFor GitHub Actions: add both as repository secrets.');
-  }
-
   // Generate config YAML
-  const notifyBlock = [slackLine, telegramLine].filter(Boolean).join('\n');
+  const notifyBlock = slackLine;
   const yaml = generateConfig(selectedPackages, notifyBlock);
 
   writeFileSync('aztec-watch.config.yaml', yaml, 'utf8');
@@ -98,7 +72,7 @@ export async function runSetup(): Promise<void> {
   p.outro(
     `Config saved to aztec-watch.config.yaml\n` +
     `  Watching: ${selectedPackages.length} packages\n` +
-    `  Notifications: ${channel === 'none' ? 'none (dry run)' : channel}\n\n` +
+    `  Notifications: ${wantsSlack ? 'slack' : 'none (dry run)'}\n\n` +
     `Next steps:\n` +
     `  Run once now:     npx tsx src/cli/index.ts run\n` +
     `  GitHub Actions:   copy .github/workflows/watch.yml to your repo`
