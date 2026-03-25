@@ -24,4 +24,4 @@ digest_window_seconds: 300
 
 # Path to the SQLite state database.
 # Locally: gitignored. In GitHub Actions: committed back after each run.
-db_path: data/state.db
+state_path: data/state.json

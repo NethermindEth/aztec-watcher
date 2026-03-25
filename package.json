@@ -4,17 +4,17 @@
   "description": "npm package monitor for the Aztec Protocol ecosystem",
   "type": "module",
   "engines": {
-    "node": ">=22.5.0"
+    "node": ">=18.0.0"
   },
   "bin": {
     "aztec-watch": "./dist/cli/index.js"
   },
   "scripts": {
     "build": "tsc",
-    "dev": "tsx --disable-warning=ExperimentalWarning src/cli/index.ts",
-    "watch:run": "node --disable-warning=ExperimentalWarning dist/cli/index.js run",
-    "watch:setup": "node --disable-warning=ExperimentalWarning dist/cli/index.js setup",
-    "watch:test": "node --disable-warning=ExperimentalWarning dist/cli/index.js test"
+    "dev": "tsx src/cli/index.ts",
+    "watch:run": "node dist/cli/index.js run",
+    "watch:init": "node dist/cli/index.js init",
+    "watch:test": "node dist/cli/index.js test"
   },
   "dependencies": {
     "@clack/prompts": "^0.9.1",

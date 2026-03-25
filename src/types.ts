@@ -18,7 +18,7 @@ export interface AppConfig {
   packages: PackageConfig[];
   notify: NotifyConfig;
   digest_window_seconds: number;
-  db_path: string;
+  state_path: string;
 }
 
 // npm registry response (only fields we use)

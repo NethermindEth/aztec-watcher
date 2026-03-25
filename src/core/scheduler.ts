@@ -6,61 +6,45 @@ import { SlackSink } from '../notify/slack.js';
 import type { NotificationSink } from '../notify/types.js';
 
 export async function runOnce(config: AppConfig): Promise<void> {
-  const store = new VersionStore(config.db_path);
+  const store = new VersionStore(config.state_path);
 
-  try {
-    // On first run the store is empty — every package would appear as a change.
-    // Seed the store silently instead of sending a notification flood.
-    const firstRun = isStoreEmpty(store, config);
+  // On first run the store is empty — every package would appear as a change.
+  // Seed the store silently instead of sending a notification flood.
+  const firstRun = store.isEmpty();
 
-    console.log(`[scheduler] Polling ${config.packages.length} packages...`);
-    const changes = await pollAll(config.packages, store);
-    console.log(`[scheduler] ${changes.length} change(s) detected`);
+  console.log(`[scheduler] Polling ${config.packages.length} packages...`);
+  const changes = await pollAll(config.packages, store);
+  console.log(`[scheduler] ${changes.length} change(s) detected`);
 
-    if (firstRun) {
-      store.applyChanges(changes);
-      store.logPollRun(config.packages.length, 0);
-      console.log(`[scheduler] First run — seeded ${changes.length} versions. No notifications sent.`);
-      return;
-    }
-
-    if (changes.length === 0) {
-      store.logPollRun(config.packages.length, 0);
-      console.log('[scheduler] Nothing changed.');
-      return;
-    }
-
-    const sinks = buildSinks(config);
-    if (sinks.length === 0) {
-      console.warn('[scheduler] No notification sinks configured. Changes:');
-      for (const c of changes) {
-        console.warn(`  ${c.packageName}@${c.tag}: ${c.oldVersion ?? 'new'} → ${c.newVersion}`);
-      }
-    }
-
-    const events = groupIntoEvents(changes);
-    console.log(`[scheduler] Grouped into ${events.length} event(s)`);
-
-    await dispatchEvents(events, sinks);
-
-    // Persist state only after successful dispatch (at-least-once delivery).
-    // If dispatch fails, next run will re-detect the same changes and retry.
+  if (firstRun) {
     store.applyChanges(changes);
-    store.logPollRun(config.packages.length, changes.length);
-    console.log('[scheduler] State updated.');
-
-  } finally {
-    store.close();
+    store.save();
+    console.log(`[scheduler] First run — seeded ${changes.length} versions. No notifications sent.`);
+    return;
   }
-}
 
-function isStoreEmpty(store: VersionStore, config: AppConfig): boolean {
-  for (const pkg of config.packages) {
-    for (const tag of pkg.tags) {
-      if (store.getVersion(pkg.name, tag) !== null) return false;
+  if (changes.length === 0) {
+    console.log('[scheduler] Nothing changed.');
+    return;
+  }
+
+  const sinks = buildSinks(config);
+  if (sinks.length === 0) {
+    console.warn('[scheduler] No notification sinks configured. Changes:');
+    for (const c of changes) {
+      console.warn(`  ${c.packageName}@${c.tag}: ${c.oldVersion ?? 'new'} → ${c.newVersion}`);
     }
   }
-  return true;
+
+  const events = groupIntoEvents(changes);
+  console.log(`[scheduler] Grouped into ${events.length} event(s)`);
+
+  await dispatchEvents(events, sinks);
+
+  // Persist state only after successful dispatch (at-least-once delivery).
+  store.applyChanges(changes);
+  store.save();
+  console.log('[scheduler] State updated.');
 }
 
 export function buildSinks(config: AppConfig): NotificationSink[] {

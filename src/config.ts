@@ -51,6 +51,6 @@ export function loadConfig(configPath?: string): AppConfig {
     packages: interpolated.packages as PackageConfig[],
     notify: (interpolated.notify ?? {}) as AppConfig['notify'],
     digest_window_seconds: (interpolated.digest_window_seconds as number) ?? 300,
-    db_path: (interpolated.db_path as string) ?? 'data/state.db',
+    state_path: (interpolated.state_path as string) ?? 'data/state.json',
   };
 }

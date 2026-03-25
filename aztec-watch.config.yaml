@@ -14,4 +14,4 @@ notify:
     webhook_url: ${SLACK_WEBHOOK_URL}
 
 digest_window_seconds: 300
-db_path: data/state.db
+state_path: data/state.json

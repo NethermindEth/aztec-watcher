@@ -139,7 +139,7 @@ function generateConfig(packages: string[]): string {
     `packages:\n${pkgLines}`,
     'notify:\n  slack:\n    webhook_url: ${SLACK_WEBHOOK_URL}',
     'digest_window_seconds: 300',
-    'db_path: data/state.db',
+    'state_path: data/state.json',
   ].join('\n\n') + '\n';
 }
 
@@ -178,7 +178,7 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore: update aztec-watch state [skip ci]"
-          file_pattern: "data/state.db"
+          file_pattern: "data/state.json"
 `;
 
   writeFileSync(`${dir}/aztec-watch.yml`, content, 'utf8');

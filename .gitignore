@@ -1,10 +1,6 @@
 node_modules/
 dist/
 
-# State database — ignored locally, committed by GitHub Actions after each run
-data/state.db
-data/state.db-shm
-data/state.db-wal
 
 # Never commit a .env file with actual secrets
 .env
