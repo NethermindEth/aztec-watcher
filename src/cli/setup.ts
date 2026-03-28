@@ -172,7 +172,7 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: \${{ secrets.SLACK_WEBHOOK_URL }}
 
-      # Commit the SQLite state file back so the next run sees the current state.
+      # Commit the state file back so the next run sees the current state.
       # [skip ci] prevents this commit from triggering another workflow run.
       - name: Commit state
         uses: stefanzweifel/git-auto-commit-action@v5

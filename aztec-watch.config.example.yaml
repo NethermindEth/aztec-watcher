@@ -22,6 +22,6 @@ notify:
 # Default: 300 seconds (5 minutes)
 digest_window_seconds: 300
 
-# Path to the SQLite state database.
-# Locally: gitignored. In GitHub Actions: committed back after each run.
+# Path to the JSON state file.
+# In GitHub Actions: committed back after each run.
 state_path: data/state.json
