@@ -1,110 +1,110 @@
 import * as p from '@clack/prompts';
 import { writeFileSync, existsSync } from 'fs';
-import { CURATED_PACKAGES, ROLE_PRESETS } from '../data/packages.js';
-
-const ROLE_LABELS: Record<string, string> = {
-  'dApp / frontend':    'dApp / frontend   — aztec.js, accounts, wallets, pxe',
-  'Smart contract':     'Smart contract    — aztec.js, noir-contracts, simulator',
-  'Wallet integration': 'Wallet integration — accounts, wallets, wallet-sdk, pxe',
-  'Node / validator':   'Node / validator  — aztec-node, sequencer, validator, p2p',
-  'Faucet / tooling':   'Faucet / tooling  — aztec.js, accounts, cli, builder',
-};
+import { CURATED_PACKAGES, CATEGORIES, ROLE_PRESETS } from '../data/packages.js';
 
 export async function runSetup(): Promise<void> {
   console.log('');
-  p.intro(
-    'aztec-watch  ·  npm release monitor for the Aztec Protocol ecosystem\n' +
-    '  Polls npm every 15 min and sends you one Slack message the moment\n' +
-    '  a new Aztec version lands — before your users notice.'
-  );
+
+  p.intro('aztec-watch');
 
   // ── Step 1: Role ─────────────────────────────────────────────────────────
+
   const role = await p.select({
     message: 'What are you building?',
-    options: Object.keys(ROLE_PRESETS).map(r => ({
-      value: r,
-      label: ROLE_LABELS[r] ?? r,
-    })),
+    options: [
+      { value: 'dApp / frontend',    label: 'dApp / frontend',    hint: 'aztec.js, accounts, wallets, pxe' },
+      { value: 'Smart contract',     label: 'Smart contract',     hint: 'aztec.js, noir-contracts, simulator' },
+      { value: 'Wallet integration', label: 'Wallet integration', hint: 'accounts, wallets, wallet-sdk, pxe' },
+      { value: 'Node / validator',   label: 'Node / validator',   hint: 'aztec-node, sequencer, validator, p2p' },
+      { value: 'Faucet / tooling',   label: 'Faucet / tooling',   hint: 'aztec.js, accounts, cli, builder' },
+    ],
   });
-  if (p.isCancel(role)) { p.cancel('Setup cancelled.'); process.exit(0); }
+  if (p.isCancel(role)) { p.cancel('Cancelled.'); process.exit(0); }
 
   const preselected = new Set(ROLE_PRESETS[role as string]);
 
   // ── Step 2: Review packages ───────────────────────────────────────────────
+
   const wantsReview = await p.confirm({
-    message: `${preselected.size} packages pre-selected for "${role as string}". Review and customize?`,
+    message: `${preselected.size} packages pre-selected. Customize?`,
     initialValue: false,
   });
-  if (p.isCancel(wantsReview)) { p.cancel('Setup cancelled.'); process.exit(0); }
+  if (p.isCancel(wantsReview)) { p.cancel('Cancelled.'); process.exit(0); }
 
   let selectedPackages: string[];
 
   if (wantsReview) {
-    const result = await p.multiselect({
-      message: 'Select packages to monitor  (↑↓ move · space toggle · a toggle all · enter confirm)',
-      options: CURATED_PACKAGES.map(pkg => ({
-        value: pkg.name,
-        label: pkg.name,
-        hint: `${pkg.category} — ${pkg.purpose}`,
-      })),
+    // Build grouped options: { "Core SDK": [...], "Infrastructure": [...], ... }
+    const grouped: Record<string, { value: string; label: string; hint: string }[]> = {};
+    for (const cat of CATEGORIES) {
+      grouped[cat] = CURATED_PACKAGES
+        .filter(pkg => pkg.category === cat)
+        .map(pkg => ({
+          value: pkg.name,
+          label: pkg.name,
+          hint: pkg.purpose,
+        }));
+    }
+
+    const result = await p.groupMultiselect({
+      message: 'Select packages to monitor',
+      options: grouped,
       initialValues: [...preselected],
       required: true,
     });
-    if (p.isCancel(result)) { p.cancel('Setup cancelled.'); process.exit(0); }
+    if (p.isCancel(result)) { p.cancel('Cancelled.'); process.exit(0); }
     selectedPackages = result as string[];
   } else {
     selectedPackages = [...preselected];
   }
 
-  // ── Step 3: Slack ─────────────────────────────────────────────────────────
+  // ── Step 3: Slack webhook ─────────────────────────────────────────────────
+
   const url = await p.text({
     message: 'Slack incoming webhook URL',
     placeholder: 'https://hooks.slack.com/services/...',
     validate: v => {
-      if (!v) return 'Required — paste your webhook URL here';
+      if (!v) return 'Paste your Slack webhook URL';
       if (!v.startsWith('https://hooks.slack.com/')) return 'Must start with https://hooks.slack.com/';
     },
   });
-  if (p.isCancel(url)) { p.cancel('Setup cancelled.'); process.exit(0); }
+  if (p.isCancel(url)) { p.cancel('Cancelled.'); process.exit(0); }
 
   // ── Write config ──────────────────────────────────────────────────────────
+
   const yaml = generateConfig(selectedPackages);
   writeFileSync('aztec-watch.config.yaml', yaml, 'utf8');
-  p.log.success('Config written → aztec-watch.config.yaml');
 
-  // ── Detect existing workflow ──────────────────────────────────────────────
+  // ── Done ──────────────────────────────────────────────────────────────────
+
   const hasWorkflow =
     existsSync('.github/workflows/watch.yml') ||
     existsSync('.github/workflows/aztec-watch.yml');
 
   if (hasWorkflow) {
-    p.log.info('GitHub Actions workflow already exists — skipping scaffold');
-  }
+    p.note(
+      `git add aztec-watch.config.yaml\n` +
+      `git commit -m "configure aztec-watch"\n` +
+      `git push`,
+      'Commit your config'
+    );
 
-  // ── Outro ─────────────────────────────────────────────────────────────────
-  if (hasWorkflow) {
-    p.outro(
-      `You're almost done. Three steps left:\n\n` +
-      `  1. Commit and push:\n` +
-      `       git add aztec-watch.config.yaml\n` +
-      `       git commit -m "configure aztec-watch"\n` +
-      `       git push\n\n` +
-      `  2. Add your Slack webhook as a GitHub secret:\n` +
-      `       Repo → Settings → Secrets and variables → Actions\n` +
-      `       New secret  →  SLACK_WEBHOOK_URL  →  (paste your webhook)\n\n` +
-      `  3. Enable Actions on your repo (Actions tab → enable workflows)\n\n` +
-      `aztec-watch will run every 15 minutes and ping you the moment a new\n` +
-      `Aztec version lands. You can also trigger it manually from the Actions tab.`
+    p.note(
+      `Repo → Settings → Secrets → Actions → New secret\n` +
+      `Name:  SLACK_WEBHOOK_URL\n` +
+      `Value: (your webhook URL)`,
+      'Add the GitHub secret'
     );
+
+    p.outro(`Watching ${selectedPackages.length} packages. Notifications go to Slack every 15 min.`);
   } else {
-    p.outro(
-      `Config ready. To run aztec-watch:\n\n` +
-      `  export SLACK_WEBHOOK_URL="${url as string}"\n` +
-      `  npm run build\n` +
-      `  node dist/cli/index.js run\n\n` +
-      `To run on a schedule, add to crontab:\n` +
-      `  */15 * * * * cd $(pwd) && SLACK_WEBHOOK_URL=... node dist/cli/index.js run >> ~/.aztec-watch.log 2>&1`
+    p.note(
+      `export SLACK_WEBHOOK_URL="${url as string}"\n` +
+      `npm run build && node dist/cli/index.js run`,
+      'Run locally'
     );
+
+    p.outro(`Config saved. ${selectedPackages.length} packages configured.`);
   }
 }
 
