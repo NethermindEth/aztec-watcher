@@ -1,8 +1,18 @@
-# aztec-watcher
+<div align="center">
 
-npm package monitor for the [Aztec Protocol](https://aztec.network) ecosystem.
+# Aztec Watcher
 
-Aztec SDK releases happen frequently with no fixed schedule. aztec-watcher polls the npm registry and sends a single grouped Slack notification when a new version drops.
+**npm release monitor for developers building on Aztec.**
+
+Polls the registry and sends a single grouped Slack notification when a new version drops.
+
+![Slack](https://img.shields.io/badge/Slack-notifications-4A154B?style=flat-square&logo=slack)
+![Node](https://img.shields.io/badge/Node-%3E%3D18-c8ff00?style=flat-square&logo=node.js&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-strict-c8ff00?style=flat-square&logo=typescript&logoColor=black)
+![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-every_15_min-c8ff00?style=flat-square&logo=githubactions&logoColor=black)
+![License](https://img.shields.io/badge/License-MIT-4A154B?style=flat-square)
+
+</div>
 
 ---
 
