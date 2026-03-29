@@ -1,11 +1,11 @@
 import * as p from '@clack/prompts';
 import { writeFileSync, existsSync } from 'fs';
-import { CURATED_PACKAGES, CATEGORIES, ROLE_PRESETS } from '../data/packages.js';
+import { CURATED_PACKAGES, ROLE_PRESETS } from '../data/packages.js';
 
 export async function runSetup(): Promise<void> {
   console.log('');
 
-  p.intro('aztec-watch');
+  p.intro('aztec-watcher');
 
   // ── Step 1: Role ─────────────────────────────────────────────────────────
 
@@ -25,38 +25,25 @@ export async function runSetup(): Promise<void> {
 
   // ── Step 2: Review packages ───────────────────────────────────────────────
 
+  const preselectedList = [...preselected];
+
   const wantsReview = await p.confirm({
-    message: `${preselected.size} packages pre-selected. Customize?`,
-    initialValue: false,
+    message: `${preselectedList.length} packages pre-selected. Want to see them?`,
+    initialValue: true,
   });
   if (p.isCancel(wantsReview)) { p.cancel('Cancelled.'); process.exit(0); }
 
-  let selectedPackages: string[];
-
   if (wantsReview) {
-    // Build grouped options: { "Core SDK": [...], "Infrastructure": [...], ... }
-    const grouped: Record<string, { value: string; label: string; hint: string }[]> = {};
-    for (const cat of CATEGORIES) {
-      grouped[cat] = CURATED_PACKAGES
-        .filter(pkg => pkg.category === cat)
-        .map(pkg => ({
-          value: pkg.name,
-          label: pkg.name,
-          hint: pkg.purpose,
-        }));
-    }
-
-    const result = await p.groupMultiselect({
-      message: 'Select packages to monitor',
-      options: grouped,
-      initialValues: [...preselected],
-      required: true,
-    });
-    if (p.isCancel(result)) { p.cancel('Cancelled.'); process.exit(0); }
-    selectedPackages = result as string[];
-  } else {
-    selectedPackages = [...preselected];
+    const listing = preselectedList.map(name => {
+      const pkg = CURATED_PACKAGES.find(p => p.name === name);
+      return `  ${name}  ${pkg ? `(${pkg.purpose})` : ''}`;
+    }).join('\n');
+    p.log.info(listing);
   }
+
+  p.log.message('  You can add or remove packages later in aztec-watch.config.yaml');
+
+  const selectedPackages = preselectedList;
 
   // ── Step 3: Which releases to track ──────────────────────────────────────
 

@@ -78,12 +78,12 @@ async function main(): Promise<void> {
 
     default: {
       console.log(`
-aztec-watch  ·  npm release monitor for the Aztec Protocol ecosystem
+aztec-watcher  ·  npm release monitor for the Aztec Protocol ecosystem
 
 Commands:
-  aztec-watch init    Interactive setup wizard  (also: aztec-watch setup)
-  aztec-watch run     Poll npm and send notifications for new versions
-  aztec-watch test    Send a fake notification to verify your Slack setup
+  aztec-watcher init    Interactive setup wizard
+  aztec-watcher run     Poll npm and send notifications for new versions
+  aztec-watcher test    Send a fake notification to verify your Slack setup
 
 Environment:
   AZTEC_WATCH_CONFIG     Path to config file (default: aztec-watch.config.yaml)
