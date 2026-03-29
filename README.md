@@ -8,10 +8,12 @@ Aztec SDK releases happen frequently with no fixed schedule. aztec-watcher polls
 
 ## Setup
 
-### 1. Clone
+### 1. Fork and clone
+
+Fork this repo on GitHub (click the **Fork** button), then:
 
 ```bash
-git clone https://github.com/NethermindEth/aztec-watcher.git
+git clone https://github.com/YOUR-USERNAME/aztec-watcher.git
 cd aztec-watcher
 npm install
 ```
