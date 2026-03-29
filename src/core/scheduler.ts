@@ -39,9 +39,15 @@ export async function runOnce(config: AppConfig): Promise<void> {
   const events = groupIntoEvents(changes);
   console.log(`[scheduler] Grouped into ${events.length} event(s)`);
 
-  await dispatchEvents(events, sinks);
+  const dispatched = await dispatchEvents(events, sinks);
 
-  // Persist state only after successful dispatch (at-least-once delivery).
+  if (!dispatched && sinks.length > 0) {
+    // All sinks failed — do NOT save state so next run retries these changes.
+    console.error('[scheduler] All notification sinks failed. State NOT updated — will retry next run.');
+    process.exit(1);
+  }
+
+  // At least one sink succeeded — persist state.
   store.applyChanges(changes);
   store.save();
   console.log('[scheduler] State updated.');

@@ -63,19 +63,25 @@ export function groupIntoEvents(changes: VersionChange[]): ReleaseEvent[] {
   return events;
 }
 
-// Dispatch events to all sinks. One sink failing does not block others.
+// Dispatch events to all sinks. Returns true if at least one sink succeeded.
+// One sink failing does not block others from being attempted.
 export async function dispatchEvents(
   events: ReleaseEvent[],
   sinks: NotificationSink[]
-): Promise<void> {
+): Promise<boolean> {
+  let anySuccess = false;
+
   for (const event of events) {
     for (const sink of sinks) {
       try {
         await sink.send(event);
         console.log(`[router] → ${sink.name}: ${event.title}`);
+        anySuccess = true;
       } catch (err) {
         console.error(`[router] ${sink.name} failed: ${(err as Error).message}`);
       }
     }
   }
+
+  return anySuccess;
 }

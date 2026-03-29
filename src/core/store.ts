@@ -18,7 +18,12 @@ export class VersionStore {
     mkdirSync(dirname(this.filePath), { recursive: true });
 
     if (existsSync(this.filePath)) {
-      this.state = JSON.parse(readFileSync(this.filePath, 'utf8'));
+      try {
+        this.state = JSON.parse(readFileSync(this.filePath, 'utf8'));
+      } catch {
+        console.warn(`[store] Warning: ${this.filePath} is corrupted — starting fresh`);
+        this.state = {};
+      }
     } else {
       this.state = {};
     }

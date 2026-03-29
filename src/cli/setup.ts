@@ -1,5 +1,5 @@
 import * as p from '@clack/prompts';
-import { writeFileSync, mkdirSync, existsSync } from 'fs';
+import { writeFileSync, existsSync } from 'fs';
 import { CURATED_PACKAGES, ROLE_PRESETS } from '../data/packages.js';
 
 const ROLE_LABELS: Record<string, string> = {
@@ -67,42 +67,27 @@ export async function runSetup(): Promise<void> {
   });
   if (p.isCancel(url)) { p.cancel('Setup cancelled.'); process.exit(0); }
 
-  // ── Step 4: Deployment target ─────────────────────────────────────────────
-  const deployment = await p.select({
-    message: 'Where will aztec-watch run?',
-    options: [
-      {
-        value: 'github',
-        label: 'GitHub Actions  (recommended)',
-        hint: 'free, runs every 15 min, no server needed — scaffold the workflow now',
-      },
-      {
-        value: 'local',
-        label: 'Local / cron',
-        hint: 'run manually or add to crontab yourself',
-      },
-    ],
-  });
-  if (p.isCancel(deployment)) { p.cancel('Setup cancelled.'); process.exit(0); }
-
   // ── Write config ──────────────────────────────────────────────────────────
   const yaml = generateConfig(selectedPackages);
   writeFileSync('aztec-watch.config.yaml', yaml, 'utf8');
   p.log.success('Config written → aztec-watch.config.yaml');
 
-  // ── Scaffold workflow (GitHub Actions) ────────────────────────────────────
-  if (deployment === 'github') {
-    scaffoldWorkflow();
-    p.log.success('Workflow written → .github/workflows/aztec-watch.yml');
+  // ── Detect existing workflow ──────────────────────────────────────────────
+  const hasWorkflow =
+    existsSync('.github/workflows/watch.yml') ||
+    existsSync('.github/workflows/aztec-watch.yml');
+
+  if (hasWorkflow) {
+    p.log.info('GitHub Actions workflow already exists — skipping scaffold');
   }
 
   // ── Outro ─────────────────────────────────────────────────────────────────
-  if (deployment === 'github') {
+  if (hasWorkflow) {
     p.outro(
-      `You\'re almost done. Three steps left:\n\n` +
-      `  1. Commit the generated files:\n` +
-      `       git add aztec-watch.config.yaml .github/workflows/aztec-watch.yml\n` +
-      `       git commit -m "add aztec-watch"\n` +
+      `You're almost done. Three steps left:\n\n` +
+      `  1. Commit and push:\n` +
+      `       git add aztec-watch.config.yaml\n` +
+      `       git commit -m "configure aztec-watch"\n` +
       `       git push\n\n` +
       `  2. Add your Slack webhook as a GitHub secret:\n` +
       `       Repo → Settings → Secrets and variables → Actions\n` +
@@ -113,11 +98,12 @@ export async function runSetup(): Promise<void> {
     );
   } else {
     p.outro(
-      `Config ready. To run aztec-watch now:\n\n` +
+      `Config ready. To run aztec-watch:\n\n` +
       `  export SLACK_WEBHOOK_URL="${url as string}"\n` +
-      `  npx aztec-watch run\n\n` +
-      `Add to crontab (runs every 15 min):\n` +
-      `  */15 * * * * cd $(pwd) && SLACK_WEBHOOK_URL=... npx aztec-watch run >> ~/.aztec-watch.log 2>&1`
+      `  npm run build\n` +
+      `  node dist/cli/index.js run\n\n` +
+      `To run on a schedule, add to crontab:\n` +
+      `  */15 * * * * cd $(pwd) && SLACK_WEBHOOK_URL=... node dist/cli/index.js run >> ~/.aztec-watch.log 2>&1`
     );
   }
 }
@@ -141,45 +127,4 @@ function generateConfig(packages: string[]): string {
     'digest_window_seconds: 300',
     'state_path: data/state.json',
   ].join('\n\n') + '\n';
-}
-
-function scaffoldWorkflow(): void {
-  const dir = '.github/workflows';
-  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-
-  const content = `name: aztec-watch
-
-on:
-  schedule:
-    - cron: "*/15 * * * *"   # every 15 minutes
-  workflow_dispatch:           # allow manual trigger from Actions tab
-
-jobs:
-  watch:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write          # needed to commit state.db back
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-
-      - name: Run aztec-watch
-        run: npx --yes aztec-watch@latest run
-        env:
-          SLACK_WEBHOOK_URL: \${{ secrets.SLACK_WEBHOOK_URL }}
-
-      # Commit the state file back so the next run sees the current state.
-      # [skip ci] prevents this commit from triggering another workflow run.
-      - name: Commit state
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "chore: update aztec-watch state [skip ci]"
-          file_pattern: "data/state.json"
-`;
-
-  writeFileSync(`${dir}/aztec-watch.yml`, content, 'utf8');
 }
