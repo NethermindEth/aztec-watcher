@@ -81,30 +81,19 @@ export async function runSetup(): Promise<void> {
     existsSync('.github/workflows/watch.yml') ||
     existsSync('.github/workflows/aztec-watch.yml');
 
+  p.log.success(`Config saved. Watching ${selectedPackages.length} packages.`);
+
   if (hasWorkflow) {
-    p.note(
-      `git add aztec-watch.config.yaml\n` +
-      `git commit -m "configure aztec-watch"\n` +
-      `git push`,
-      'Commit your config'
-    );
-
-    p.note(
-      `Repo → Settings → Secrets → Actions → New secret\n` +
-      `Name:  SLACK_WEBHOOK_URL\n` +
-      `Value: (your webhook URL)`,
-      'Add the GitHub secret'
-    );
-
-    p.outro(`Watching ${selectedPackages.length} packages. You'll only get notified when a version changes.`);
+    p.log.step('Next: commit and push your config');
+    p.log.message('  git add aztec-watch.config.yaml && git commit -m "configure aztec-watch" && git push');
+    p.log.step('Then add your Slack webhook as a GitHub secret');
+    p.log.message('  Repo > Settings > Secrets > Actions > SLACK_WEBHOOK_URL');
+    p.outro('You only get notified when a version actually changes.');
   } else {
-    p.note(
-      `export SLACK_WEBHOOK_URL="${url as string}"\n` +
-      `npm run build && node dist/cli/index.js run`,
-      'Run locally'
-    );
-
-    p.outro(`Config saved. ${selectedPackages.length} packages configured.`);
+    p.log.step('Next: run aztec-watch');
+    p.log.message(`  export SLACK_WEBHOOK_URL="${url as string}"`);
+    p.log.message('  npm run build && node dist/cli/index.js run');
+    p.outro('You only get notified when a version actually changes.');
   }
 }
 

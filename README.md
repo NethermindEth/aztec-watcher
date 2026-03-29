@@ -48,25 +48,15 @@ Three questions, then you're done:
 ◆  Slack incoming webhook URL
 │  https://hooks.slack.com/services/...
 │
-✓  Config written > aztec-watch.config.yaml
+✓  Config saved. Watching 6 packages.
 │
-├──────────────────────────────────────────╮
-│  Commit your config                      │
-│                                          │
-│  git add aztec-watch.config.yaml         │
-│  git commit -m "configure aztec-watch"   │
-│  git push                                │
-├──────────────────────────────────────────╯
+◇  Next: commit and push your config
+│    git add aztec-watch.config.yaml && git commit -m "configure aztec-watch" && git push
 │
-├──────────────────────────────────────────╮
-│  Add the GitHub secret                   │
-│                                          │
-│  Repo > Settings > Secrets > Actions     │
-│  Name:  SLACK_WEBHOOK_URL                │
-│  Value: (your webhook URL)               │
-├──────────────────────────────────────────╯
+◇  Then add your Slack webhook as a GitHub secret
+│    Repo > Settings > Secrets > Actions > SLACK_WEBHOOK_URL
 │
-└  Watching 6 packages. You'll only get notified when a version changes.
+└  You only get notified when a version actually changes.
 ```
 
 Choosing **Customize** shows a grouped package selector:
