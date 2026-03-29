@@ -16,41 +16,7 @@ cd aztec-watcher
 npm install
 ```
 
-### 2. Run the setup wizard
-
-```bash
-npx aztec-watch init
-```
-
-The wizard walks you through:
-
-```
-◆  What are you building?
-│  ● dApp / frontend
-│  ○ Smart contract
-│  ○ Wallet integration
-│  ○ Node / validator
-│  ○ Faucet / tooling
-
-◆  12 packages pre-selected. Review and customize?
-│  ○ Yes  ● No
-
-◆  Slack incoming webhook URL
-│  https://hooks.slack.com/services/...
-
-◆  Where will aztec-watch run?
-│  ● GitHub Actions (recommended)
-│  ○ Local / cron
-
-✓  Config written → aztec-watch.config.yaml
-✓  Workflow written → .github/workflows/aztec-watch.yml
-```
-
-This generates two files:
-- **`aztec-watch.config.yaml`** — your packages + notification config (safe to commit, no secrets)
-- **`.github/workflows/aztec-watch.yml`** — GitHub Actions workflow that runs every 15 minutes
-
-### 3. Create a Slack webhook
+### 2. Create a Slack webhook
 
 1. Go to [api.slack.com/apps](https://api.slack.com/apps) → **Create New App** → **From scratch**
 2. Name it (e.g. `aztec-watch`) → pick your workspace → **Create App**
@@ -58,11 +24,80 @@ This generates two files:
 4. **Add New Webhook to Workspace** → pick a channel → **Allow**
 5. Copy the webhook URL
 
+### 3. Run the setup wizard
+
+```bash
+npx aztec-watch init
+```
+
+Three questions — that's it:
+
+```
+┌  aztec-watch
+│
+◆  What are you building?
+│  ● dApp / frontend       aztec.js, accounts, wallets, pxe
+│  ○ Smart contract        aztec.js, noir-contracts, simulator
+│  ○ Wallet integration    accounts, wallets, wallet-sdk, pxe
+│  ○ Node / validator      aztec-node, sequencer, validator, p2p
+│  ○ Faucet / tooling      aztec.js, accounts, cli, builder
+│
+◆  6 packages pre-selected. Customize?
+│  No
+│
+◆  Slack incoming webhook URL
+│  https://hooks.slack.com/services/...
+│
+✓  Config written → aztec-watch.config.yaml
+│
+├──────────────────────────────────────────╮
+│  Commit your config                      │
+│                                          │
+│  git add aztec-watch.config.yaml         │
+│  git commit -m "configure aztec-watch"   │
+│  git push                                │
+├──────────────────────────────────────────╯
+│
+├──────────────────────────────────────────╮
+│  Add the GitHub secret                   │
+│                                          │
+│  Repo → Settings → Secrets → Actions     │
+│  Name:  SLACK_WEBHOOK_URL                │
+│  Value: (your webhook URL)               │
+├──────────────────────────────────────────╯
+│
+└  Watching 6 packages. Notifications go to Slack every 15 min.
+```
+
+If you choose **Customize** you get a grouped package selector:
+
+```
+◆  Select packages to monitor
+│
+│  Core SDK
+│  ◼ @aztec/aztec.js          Primary client SDK
+│  ◼ @aztec/accounts          Schnorr/ECDSA account contracts
+│  ◻ @aztec/wallets           Embedded wallet
+│  ◻ @aztec/pxe               Private eXecution Environment
+│  ...
+│
+│  Infrastructure
+│  ◻ @aztec/aztec-node        Full sequencer node
+│  ◻ @aztec/sequencer-client  Sequencer module
+│  ...
+│
+│  Noir Language
+│  ◻ @noir-lang/noir_js       Noir JS interface
+│  ...
+```
+
+65 packages across 9 categories. Pick exactly the ones you need.
+
 ### 4. Push to GitHub
 
 ```bash
-git add aztec-watch.config.yaml .github/workflows/aztec-watch.yml
-git commit -m "add aztec-watch"
+git add aztec-watch.config.yaml
+git commit -m "configure aztec-watch"
 git push
 ```
 
@@ -74,13 +109,13 @@ Go to your repo on GitHub:
 
 | Name | Value |
 |---|---|
-| `SLACK_WEBHOOK_URL` | The webhook URL you copied in step 3 |
+| `SLACK_WEBHOOK_URL` | The webhook URL you copied in step 2 |
 
 ### 6. Enable GitHub Actions
 
-Go to the **Actions** tab on your repo → click **"I understand my workflows, go ahead and enable them"**.
+Go to the **Actions** tab → click **"I understand my workflows, go ahead and enable them"**.
 
-**Done.** aztec-watch will now run every 15 minutes. The moment Aztec publishes a new version, you'll get a Slack message like this:
+**Done.** The workflow runs every 15 minutes. The moment Aztec publishes a new version, you get a Slack message:
 
 ```
 Aztec 4.1.2-rc.1
@@ -120,8 +155,9 @@ After pushing, go to **Actions** → **aztec-watch** → **Run workflow** → **
 1. Every 15 minutes, the GitHub Actions workflow runs `aztec-watch run`
 2. It polls the npm registry for every package in your config
 3. Compares the current versions against `data/state.json` (a simple JSON file that tracks what you've already been notified about)
-4. If anything changed, it groups the updates into **one Slack message** per release (Aztec is a monorepo — 60+ packages bump at once, you get one message not 60)
-5. After notifying, it commits the updated `state.json` back to your repo so the next run knows where it left off
+4. If anything changed, groups the updates into **one Slack message** per release (Aztec is a monorepo — 60+ packages bump at once, you get one message, not 60)
+5. After notifying, commits the updated `state.json` back to your repo so the next run knows where it left off
+6. If Slack is down, state is **not** saved — the next run retries the same notification (at-least-once delivery)
 
 ---
 
@@ -161,8 +197,6 @@ Full list: [`src/data/packages.ts`](src/data/packages.ts)
 ---
 
 ## Running locally (without GitHub Actions)
-
-If you chose "Local / cron" during setup:
 
 ```bash
 export SLACK_WEBHOOK_URL="https://hooks.slack.com/services/..."
