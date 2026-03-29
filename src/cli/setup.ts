@@ -136,7 +136,7 @@ export async function runSetup(): Promise<void> {
   // ── Next steps ──────────────────────────────────────────────────────────
 
   p.log.step('Next: commit and push your config');
-  p.log.message('  git add aztec-watch.config.yaml && git commit -m "configure aztec-watcher" && git push');
+  p.log.message('  git add aztec-watch.config.yaml data/state.json && git commit -m "configure aztec-watcher" && git push');
   p.log.step('Add your Slack webhook as a GitHub secret');
   p.log.message('  Repo > Settings > Secrets > Actions > SLACK_WEBHOOK_URL');
   p.outro('You only get notified when a version actually changes.');
