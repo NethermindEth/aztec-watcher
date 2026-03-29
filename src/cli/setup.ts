@@ -1,6 +1,6 @@
 import * as p from '@clack/prompts';
-import { writeFileSync } from 'fs';
-import { resolve } from 'path';
+import { writeFileSync, mkdirSync } from 'fs';
+import { resolve, dirname } from 'path';
 import { CURATED_PACKAGES, ROLE_PRESETS } from '../data/packages.js';
 import { loadConfig } from '../config.js';
 import { buildSinks } from '../core/scheduler.js';
@@ -68,6 +68,11 @@ export async function runSetup(): Promise<void> {
 
   const yaml = generateConfig(selectedPackages, tagChoice as string);
   writeFileSync('aztec-watch.config.yaml', yaml, 'utf8');
+
+  // Reset state so this fork starts fresh on first run
+  const statePath = resolve('data/state.json');
+  mkdirSync(dirname(statePath), { recursive: true });
+  writeFileSync(statePath, '{}\n', 'utf8');
 
   // ── Done ──────────────────────────────────────────────────────────────────
 
