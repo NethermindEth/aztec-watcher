@@ -58,7 +58,20 @@ export async function runSetup(): Promise<void> {
     selectedPackages = [...preselected];
   }
 
-  // ── Step 3: Slack webhook ─────────────────────────────────────────────────
+  // ── Step 3: Which releases to track ──────────────────────────────────────
+
+  const tagChoice = await p.select({
+    message: 'Which releases do you want to track?',
+    options: [
+      { value: 'stable',  label: 'Stable only',          hint: 'latest tag, fewer notifications' },
+      { value: 'rc',      label: 'Release candidates',   hint: 'rc tag, know before stable lands' },
+      { value: 'both',    label: 'Both stable and RC',    hint: 'latest + rc tags' },
+      { value: 'all',     label: 'Everything',            hint: 'latest, rc, devnet, nightly' },
+    ],
+  });
+  if (p.isCancel(tagChoice)) { p.cancel('Cancelled.'); process.exit(0); }
+
+  // ── Step 4: Slack webhook ─────────────────────────────────────────────────
 
   const url = await p.text({
     message: 'Slack incoming webhook URL',
@@ -72,7 +85,7 @@ export async function runSetup(): Promise<void> {
 
   // ── Write config ──────────────────────────────────────────────────────────
 
-  const yaml = generateConfig(selectedPackages);
+  const yaml = generateConfig(selectedPackages, tagChoice as string);
   writeFileSync('aztec-watch.config.yaml', yaml, 'utf8');
 
   // ── Done ──────────────────────────────────────────────────────────────────
@@ -99,14 +112,27 @@ export async function runSetup(): Promise<void> {
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 
-function generateConfig(packages: string[]): string {
+function pickTags(pkg: string, allTags: string[], choice: string): string[] {
+  switch (choice) {
+    case 'stable': return allTags.filter(t => t === 'latest');
+    case 'rc':     return allTags.filter(t => t === 'rc');
+    case 'both':   return allTags.filter(t => t === 'latest' || t === 'rc');
+    case 'all':    return allTags;
+    default:       return ['latest'];
+  }
+}
+
+function generateConfig(packages: string[], tagChoice: string): string {
   const pkgLines = packages
     .map(name => {
       const pkg = CURATED_PACKAGES.find(p => p.name === name);
-      const tags = pkg?.tags.slice(0, 2) ?? ['latest'];
+      const allTags = pkg?.tags ?? ['latest'];
+      const tags = pickTags(name, allTags, tagChoice);
+      if (tags.length === 0) return null; // package doesn't have this tag
       const schnorr = name === '@aztec/accounts' ? '\n    check_schnorr_class_id: true' : '';
       return `  - name: "${name}"\n    tags: [${tags.join(', ')}]${schnorr}`;
     })
+    .filter(Boolean)
     .join('\n');
 
   return [

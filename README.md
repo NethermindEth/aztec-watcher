@@ -30,7 +30,7 @@ npm install
 npx aztec-watch init
 ```
 
-Three questions, then you're done:
+Four questions, then you're done:
 
 ```
 ┌  aztec-watch
@@ -44,6 +44,12 @@ Three questions, then you're done:
 │
 ◆  6 packages pre-selected. Customize?
 │  No
+│
+◆  Which releases do you want to track?
+│  ○ Stable only             latest tag, fewer notifications
+│  ● Release candidates      rc tag, know before stable lands
+│  ○ Both stable and RC      latest + rc tags
+│  ○ Everything              latest, rc, devnet, nightly
 │
 ◆  Slack incoming webhook URL
 │  https://hooks.slack.com/services/...
@@ -103,15 +109,15 @@ On your repo: **Settings > Secrets and variables > Actions > New repository secr
 
 **Actions** tab > click **"I understand my workflows, go ahead and enable them"**.
 
-That's it. The workflow runs every 15 minutes. When Aztec publishes a new version, you get:
+That's it. The workflow checks every 15 minutes. When a version changes, you get a Slack message:
 
 ```
 Aztec 4.1.2-rc.1
 
-@aztec/aztec.js   4.1.1-rc.1  >  4.1.2-rc.1
-@aztec/accounts   4.1.1-rc.1  >  4.1.2-rc.1
-@aztec/wallets    4.1.1-rc.1  >  4.1.2-rc.1
-@aztec/pxe        4.1.1-rc.1  >  4.1.2-rc.1
+@aztec/aztec.js   4.1.1-rc.1 -> 4.1.2-rc.1
+@aztec/accounts   4.1.1-rc.1 -> 4.1.2-rc.1
+@aztec/wallets    4.1.1-rc.1 -> 4.1.2-rc.1
+@aztec/pxe        4.1.1-rc.1 -> 4.1.2-rc.1
 
 npm install @aztec/aztec.js@rc @aztec/accounts@rc @aztec/wallets@rc @aztec/pxe@rc
 ```

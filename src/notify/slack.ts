@@ -5,16 +5,14 @@ function buildBlocks(event: ReleaseEvent): object[] {
 
   // Title
   blocks.push({
-    type: 'section',
-    text: { type: 'mrkdwn', text: `*${event.title}*` },
+    type: 'header',
+    text: { type: 'plain_text', text: event.title, emoji: true },
   });
 
   // Package diff list
-  const maxLen = Math.max(...event.changes.map(c => c.packageName.length));
   const lines = event.changes.map(c => {
-    const pad = ' '.repeat(maxLen - c.packageName.length + 2);
-    const from = c.oldVersion ?? 'new';
-    return `\`${c.packageName}\`${pad}${from}  →  ${c.newVersion}`;
+    const from = c.oldVersion ?? '-';
+    return `*${c.packageName}*  ${from} -> ${c.newVersion}`;
   });
 
   blocks.push({
@@ -22,22 +20,24 @@ function buildBlocks(event: ReleaseEvent): object[] {
     text: { type: 'mrkdwn', text: lines.join('\n') },
   });
 
-  // Schnorr warning — compact single line
+  // Schnorr warning
   if (event.schnorrWarning) {
-    const short = (id: string) => id.slice(0, 12) + '…';
     blocks.push({
       type: 'context',
       elements: [{
         type: 'mrkdwn',
-        text: `:warning:  Schnorr class ID changed — redeploy accounts before going live\n\`${short(event.schnorrWarning.oldClassId)}\`  →  \`${short(event.schnorrWarning.newClassId)}\``,
+        text: ':warning: Schnorr class ID changed. Redeploy accounts before going live.',
       }],
     });
   }
 
   // Install command
   blocks.push({
-    type: 'section',
-    text: { type: 'mrkdwn', text: `\`\`\`\n${event.installCommand}\n\`\`\`` },
+    type: 'context',
+    elements: [{
+      type: 'mrkdwn',
+      text: `\`${event.installCommand}\``,
+    }],
   });
 
   return blocks;
