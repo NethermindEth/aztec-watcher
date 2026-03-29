@@ -19,7 +19,7 @@ npm install
 ### 2. Create a Slack webhook
 
 1. Go to [api.slack.com/apps](https://api.slack.com/apps) > **Create New App** > **From scratch**
-2. Name it (e.g. `aztec-watch`), pick your workspace, click **Create App**
+2. Name it (e.g. `aztec-watcher`), pick your workspace, click **Create App**
 3. Left sidebar > **Incoming Webhooks** > toggle ON
 4. **Add New Webhook to Workspace** > pick a channel > **Allow**
 5. Copy the webhook URL
@@ -30,10 +30,8 @@ npm install
 npx aztec-watch init
 ```
 
-Four questions, then you're done:
-
 ```
-┌  aztec-watch
+┌  aztec-watcher
 │
 ◆  What are you building?
 │  ● dApp / frontend       aztec.js, accounts, wallets, pxe
@@ -42,8 +40,17 @@ Four questions, then you're done:
 │  ○ Node / validator      aztec-node, sequencer, validator, p2p
 │  ○ Faucet / tooling      aztec.js, accounts, cli, builder
 │
-◆  6 packages pre-selected. Customize?
-│  No
+◆  6 packages pre-selected. Want to see them?
+│  Yes
+│
+●  @aztec/aztec.js   (Primary client SDK)
+│  @aztec/accounts   (Schnorr/ECDSA account contracts)
+│  @aztec/wallets    (Embedded wallet)
+│  @aztec/pxe        (Private eXecution Environment)
+│  @aztec/stdlib     (JS types and helpers)
+│  @aztec/wallet-sdk (dApp wallet integration SDK)
+│
+│  You can add or remove packages later in ./aztec-watch.config.yaml
 │
 ◆  Which releases do you want to track?
 │  ○ Stable only             latest tag, fewer notifications
@@ -51,49 +58,33 @@ Four questions, then you're done:
 │  ○ Both stable and RC      latest + rc tags
 │  ○ Everything              latest, rc, devnet, nightly
 │
-◆  Slack incoming webhook URL
-│  https://hooks.slack.com/services/...
-│
 ✓  Config saved. Watching 6 packages.
 │
-◇  Next: commit and push your config
-│    git add aztec-watch.config.yaml && git commit -m "configure aztec-watch" && git push
+◆  Want to test your Slack webhook now?
+│  Yes
 │
-◇  Then add your Slack webhook as a GitHub secret
+◆  Paste your Slack webhook URL (only used for this test, not saved anywhere)
+│  https://hooks.slack.com/services/...
+│
+◐  Sending test notification...
+✓  Test notification sent. Check your Slack channel.
+│
+◇  Next: commit and push your config
+│    git add aztec-watch.config.yaml && git commit -m "configure aztec-watcher" && git push
+│
+◇  Add your Slack webhook as a GitHub secret
 │    Repo > Settings > Secrets > Actions > SLACK_WEBHOOK_URL
 │
 └  You only get notified when a version actually changes.
 ```
 
-Choosing **Customize** shows a grouped package selector:
-
-```
-◆  Select packages to monitor
-│
-│  Core SDK
-│  ◼ @aztec/aztec.js          Primary client SDK
-│  ◼ @aztec/accounts          Schnorr/ECDSA account contracts
-│  ◻ @aztec/wallets           Embedded wallet
-│  ◻ @aztec/pxe               Private eXecution Environment
-│  ...
-│
-│  Infrastructure
-│  ◻ @aztec/aztec-node        Full sequencer node
-│  ◻ @aztec/sequencer-client  Sequencer module
-│  ...
-│
-│  Noir Language
-│  ◻ @noir-lang/noir_js       Noir JS interface
-│  ...
-```
-
-65 packages across 9 categories.
+The webhook URL you paste during the test is used once and discarded. It is never saved to any file.
 
 ### 4. Push
 
 ```bash
 git add aztec-watch.config.yaml
-git commit -m "configure aztec-watch"
+git commit -m "configure aztec-watcher"
 git push
 ```
 
@@ -124,27 +115,9 @@ npm install @aztec/aztec.js@rc @aztec/accounts@rc @aztec/wallets@rc @aztec/pxe@r
 
 ---
 
-## Testing
-
-### Send a test notification
-
-```bash
-export SLACK_WEBHOOK_URL="https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
-npm run build
-node dist/cli/index.js test
-```
-
-A test message shows up in your Slack channel immediately.
-
-### Trigger manually
-
-After pushing: **Actions** > **aztec-watch** > **Run workflow** > **Run workflow**.
-
----
-
 ## How it works
 
-1. Every 15 minutes, GitHub Actions runs `aztec-watch run`
+1. Every 15 minutes, GitHub Actions runs `aztec-watcher run`
 2. Polls the npm registry for every package in your config
 3. Compares versions against `data/state.json`
 4. If anything changed, groups updates into one Slack message per release (Aztec is a monorepo, 60+ packages bump at once, you get one message not 60)
@@ -201,6 +174,7 @@ Crontab (every 15 min):
 ## Security
 
 - Config uses `${ENV_VAR}` placeholders. No secrets in the repo.
+- The webhook URL pasted during setup test is used once and discarded.
 - Only connects to `registry.npmjs.org` and `hooks.slack.com`.
 - No server, no database, no third-party service.
 
