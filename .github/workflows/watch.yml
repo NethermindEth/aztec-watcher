@@ -1,4 +1,4 @@
-name: aztec-watch
+name: aztec-watcher
 
 on:
   schedule:

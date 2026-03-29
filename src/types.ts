@@ -17,7 +17,6 @@ export interface NotifyConfig {
 export interface AppConfig {
   packages: PackageConfig[];
   notify: NotifyConfig;
-  digest_window_seconds: number;
   state_path: string;
 }
 

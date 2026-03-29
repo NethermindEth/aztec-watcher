@@ -100,7 +100,6 @@ describe('buildSinks', () => {
     const sinks = buildSinks({
       packages: [],
       notify: {},
-      digest_window_seconds: 300,
       state_path: STATE_PATH,
     });
     expect(sinks).toHaveLength(0);
@@ -111,7 +110,6 @@ describe('buildSinks', () => {
     const sinks = buildSinks({
       packages: [],
       notify: { slack: { webhook_url: 'https://hooks.slack.com/test' } },
-      digest_window_seconds: 300,
       state_path: STATE_PATH,
     });
     expect(sinks).toHaveLength(1);

@@ -16,7 +16,7 @@ async function main(): Promise<void> {
       try {
         config = loadConfig(configPath);
       } catch (err) {
-        console.error(`[aztec-watch] Config error: ${(err as Error).message}`);
+        console.error(`[aztec-watcher] Config error: ${(err as Error).message}`);
         process.exit(1);
       }
       await runOnce(config);
@@ -34,13 +34,13 @@ async function main(): Promise<void> {
       try {
         config = loadConfig(configPath);
       } catch (err) {
-        console.error(`[aztec-watch] Config error: ${(err as Error).message}`);
+        console.error(`[aztec-watcher] Config error: ${(err as Error).message}`);
         process.exit(1);
       }
 
       const sinks = buildSinks(config);
       if (sinks.length === 0) {
-        console.error('[aztec-watch] No notification sinks configured. Run `aztec-watch init` first.');
+        console.error('[aztec-watcher] No notification sinks configured. Run `aztec-watch init` first.');
         process.exit(1);
       }
 
@@ -95,6 +95,6 @@ Environment:
 }
 
 main().catch(err => {
-  console.error('[aztec-watch] Fatal:', err);
+  console.error('[aztec-watcher] Fatal:', err);
   process.exit(1);
 });

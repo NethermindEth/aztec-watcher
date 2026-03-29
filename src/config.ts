@@ -36,7 +36,7 @@ export function loadConfig(configPath?: string): AppConfig {
     raw = readFileSync(resolvedPath, 'utf8');
   } catch {
     throw new Error(
-      `Config file not found at ${resolvedPath}.\nRun: aztec-watch setup`
+      `Config file not found at ${resolvedPath}.\nRun: aztec-watcher init`
     );
   }
 
@@ -50,7 +50,6 @@ export function loadConfig(configPath?: string): AppConfig {
   return {
     packages: interpolated.packages as PackageConfig[],
     notify: (interpolated.notify ?? {}) as AppConfig['notify'],
-    digest_window_seconds: (interpolated.digest_window_seconds as number) ?? 300,
     state_path: (interpolated.state_path as string) ?? 'data/state.json',
   };
 }

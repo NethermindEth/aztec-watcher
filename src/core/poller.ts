@@ -8,10 +8,10 @@ async function fetchDistTags(packageName: string): Promise<Record<string, string
 
   const res = await fetch(url, {
     headers: {
-      // Abbreviated response: only dist-tags, name, and versions — 10-100x smaller
       'Accept': 'application/vnd.npm.install-v1+json',
-      'User-Agent': 'aztec-watch/0.1.0 (github.com/your-org/aztec-watch)',
+      'User-Agent': 'aztec-watcher/0.1.0 (github.com/NethermindEth/aztec-watcher)',
     },
+    signal: AbortSignal.timeout(15_000),
   });
 
   if (res.status === 404) {

@@ -42,7 +42,6 @@ packages:
     `);
 
     const config = loadConfig(path);
-    expect(config.digest_window_seconds).toBe(300);
     expect(config.state_path).toBe('data/state.json');
     expect(config.notify).toEqual({});
   });
