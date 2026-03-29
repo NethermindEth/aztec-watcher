@@ -1,6 +1,11 @@
 import * as p from '@clack/prompts';
 import { writeFileSync, existsSync } from 'fs';
+import { resolve } from 'path';
 import { CURATED_PACKAGES, ROLE_PRESETS } from '../data/packages.js';
+import { loadConfig } from '../config.js';
+import { buildSinks } from '../core/scheduler.js';
+import { dispatchEvents } from '../notify/router.js';
+import type { ReleaseEvent } from '../notify/types.js';
 
 export async function runSetup(): Promise<void> {
   console.log('');
@@ -41,7 +46,8 @@ export async function runSetup(): Promise<void> {
     p.log.info(listing);
   }
 
-  p.log.message('  You can add or remove packages later in aztec-watch.config.yaml');
+  const configPath = resolve('aztec-watch.config.yaml');
+  p.log.message(`  You can add or remove packages later in ${configPath}`);
 
   const selectedPackages = preselectedList;
 
@@ -58,18 +64,6 @@ export async function runSetup(): Promise<void> {
   });
   if (p.isCancel(tagChoice)) { p.cancel('Cancelled.'); process.exit(0); }
 
-  // ── Step 4: Slack webhook ─────────────────────────────────────────────────
-
-  const url = await p.text({
-    message: 'Slack incoming webhook URL',
-    placeholder: 'https://hooks.slack.com/services/...',
-    validate: v => {
-      if (!v) return 'Paste your Slack webhook URL';
-      if (!v.startsWith('https://hooks.slack.com/')) return 'Must start with https://hooks.slack.com/';
-    },
-  });
-  if (p.isCancel(url)) { p.cancel('Cancelled.'); process.exit(0); }
-
   // ── Write config ──────────────────────────────────────────────────────────
 
   const yaml = generateConfig(selectedPackages, tagChoice as string);
@@ -83,18 +77,68 @@ export async function runSetup(): Promise<void> {
 
   p.log.success(`Config saved. Watching ${selectedPackages.length} packages.`);
 
-  if (hasWorkflow) {
-    p.log.step('Next: commit and push your config');
-    p.log.message('  git add aztec-watch.config.yaml && git commit -m "configure aztec-watch" && git push');
-    p.log.step('Then add your Slack webhook as a GitHub secret');
-    p.log.message('  Repo > Settings > Secrets > Actions > SLACK_WEBHOOK_URL');
-    p.outro('You only get notified when a version actually changes.');
-  } else {
-    p.log.step('Next: run aztec-watch');
-    p.log.message(`  export SLACK_WEBHOOK_URL="${url as string}"`);
-    p.log.message('  npm run build && node dist/cli/index.js run');
-    p.outro('You only get notified when a version actually changes.');
+  // ── Optional: test Slack ────────────────────────────────────────────────
+
+  const wantsTest = await p.confirm({
+    message: 'Want to test your Slack webhook now?',
+    initialValue: false,
+  });
+  if (p.isCancel(wantsTest)) { p.cancel('Cancelled.'); process.exit(0); }
+
+  if (wantsTest) {
+    const webhookUrl = await p.text({
+      message: 'Paste your Slack webhook URL (only used for this test, not saved anywhere)',
+      placeholder: 'https://hooks.slack.com/services/...',
+      validate: v => {
+        if (!v) return 'Paste your Slack webhook URL';
+        if (!v.startsWith('https://hooks.slack.com/')) return 'Must start with https://hooks.slack.com/';
+      },
+    });
+    if (p.isCancel(webhookUrl)) { p.cancel('Cancelled.'); process.exit(0); }
+
+    // Temporarily set env so config can load
+    process.env['SLACK_WEBHOOK_URL'] = webhookUrl as string;
+
+    try {
+      const config = loadConfig('aztec-watch.config.yaml');
+      const sinks = buildSinks(config);
+      const testPkgs = config.packages.slice(0, 4);
+      const tag = testPkgs[0]?.tags[0] ?? 'latest';
+
+      const fakeEvent: ReleaseEvent = {
+        title: 'Aztec 4.1.0-rc.5 [TEST]',
+        isDigest: testPkgs.length > 1,
+        changes: testPkgs.map(pkg => ({
+          packageName: pkg.name,
+          tag,
+          oldVersion: '4.1.0-rc.4',
+          newVersion: '4.1.0-rc.5',
+        })),
+        installCommand: `npm install ${testPkgs.map(pkg => `${pkg.name}@${tag}`).join(' ')}`,
+      };
+
+      const s = p.spinner();
+      s.start('Sending test notification...');
+      const ok = await dispatchEvents([fakeEvent], sinks);
+      if (ok) {
+        s.stop('Test notification sent. Check your Slack channel.');
+      } else {
+        s.stop('Failed to send. Check your webhook URL and try again.');
+      }
+    } catch (err) {
+      p.log.error(`Test failed: ${(err as Error).message}`);
+    }
+
+    delete process.env['SLACK_WEBHOOK_URL'];
   }
+
+  // ── Next steps ──────────────────────────────────────────────────────────
+
+  p.log.step('Next: commit and push your config');
+  p.log.message('  git add aztec-watch.config.yaml && git commit -m "configure aztec-watcher" && git push');
+  p.log.step('Add your Slack webhook as a GitHub secret');
+  p.log.message('  Repo > Settings > Secrets > Actions > SLACK_WEBHOOK_URL');
+  p.outro('You only get notified when a version actually changes.');
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────
