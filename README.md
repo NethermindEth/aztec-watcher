@@ -66,7 +66,7 @@ Three questions, then you're done:
 │  Value: (your webhook URL)               │
 ├──────────────────────────────────────────╯
 │
-└  Watching 6 packages. Notifications go to Slack every 15 min.
+└  Watching 6 packages. You'll only get notified when a version changes.
 ```
 
 Choosing **Customize** shows a grouped package selector:

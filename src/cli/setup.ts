@@ -96,7 +96,7 @@ export async function runSetup(): Promise<void> {
       'Add the GitHub secret'
     );
 
-    p.outro(`Watching ${selectedPackages.length} packages. Notifications go to Slack every 15 min.`);
+    p.outro(`Watching ${selectedPackages.length} packages. You'll only get notified when a version changes.`);
   } else {
     p.note(
       `export SLACK_WEBHOOK_URL="${url as string}"\n` +
