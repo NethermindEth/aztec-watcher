@@ -1,4 +1,4 @@
-// Config types loaded from aztec-watch.config.yaml
+// Config types loaded from aztec-watcher.config.yaml
 
 export interface PackageConfig {
   name: string;

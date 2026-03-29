@@ -7,7 +7,7 @@ import { runSetup } from './setup.js';
 import type { ReleaseEvent } from '../notify/types.js';
 
 const command = process.argv[2];
-const configPath = process.env['AZTEC_WATCH_CONFIG'] ?? 'aztec-watch.config.yaml';
+const configPath = process.env['AZTEC_WATCHER_CONFIG'] ?? 'aztec-watcher.config.yaml';
 
 async function main(): Promise<void> {
   switch (command) {
@@ -40,7 +40,7 @@ async function main(): Promise<void> {
 
       const sinks = buildSinks(config);
       if (sinks.length === 0) {
-        console.error('[aztec-watcher] No notification sinks configured. Run `aztec-watch init` first.');
+        console.error('[aztec-watcher] No notification sinks configured. Run `aztec-watcher init` first.');
         process.exit(1);
       }
 
@@ -86,7 +86,7 @@ Commands:
   aztec-watcher test    Send a fake notification to verify your Slack setup
 
 Environment:
-  AZTEC_WATCH_CONFIG     Path to config file (default: aztec-watch.config.yaml)
+  AZTEC_WATCHER_CONFIG     Path to config file (default: aztec-watcher.config.yaml)
   SLACK_WEBHOOK_URL      Slack incoming webhook URL
       `.trim());
       process.exit(1);

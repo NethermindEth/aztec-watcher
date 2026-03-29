@@ -1,5 +1,5 @@
 {
-  "name": "aztec-watch",
+  "name": "aztec-watcher",
   "version": "0.1.0",
   "description": "npm package monitor for the Aztec Protocol ecosystem",
   "type": "module",
@@ -7,7 +7,7 @@
     "node": ">=18.0.0"
   },
   "bin": {
-    "aztec-watch": "./dist/cli/index.js"
+    "aztec-watcher": "./dist/cli/index.js"
   },
   "scripts": {
     "build": "tsc",

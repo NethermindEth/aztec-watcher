@@ -53,7 +53,7 @@ node dist/cli/index.js init
 │  @aztec/stdlib     (JS types and helpers)
 │  @aztec/wallet-sdk (dApp wallet integration SDK)
 │
-│  You can add or remove packages later in ./aztec-watch.config.yaml
+│  You can add or remove packages later in ./aztec-watcher.config.yaml
 │
 ◆  Which releases do you want to track?
 │  ○ Stable only             latest tag, fewer notifications
@@ -73,7 +73,7 @@ node dist/cli/index.js init
 ✓  Test notification sent. Check your Slack channel.
 │
 ◇  Next: commit and push your config
-│    git add aztec-watch.config.yaml data/state.json && git commit -m "configure aztec-watcher" && git push
+│    git add aztec-watcher.config.yaml data/state.json && git commit -m "configure aztec-watcher" && git push
 │
 ◇  Add your Slack webhook as a GitHub secret
 │    Repo > Settings > Secrets > Actions > SLACK_WEBHOOK_URL
@@ -86,7 +86,7 @@ The webhook URL you paste during the test is used once and discarded. It is neve
 ### 4. Push
 
 ```bash
-git add aztec-watch.config.yaml data/state.json
+git add aztec-watcher.config.yaml data/state.json
 git commit -m "configure aztec-watcher"
 git push
 ```
@@ -120,7 +120,7 @@ npm install @aztec/aztec.js@rc @aztec/accounts@rc @aztec/wallets@rc @aztec/pxe@r
 
 ## How it works
 
-1. Every 15 minutes, GitHub Actions runs `aztec-watch run`
+1. Every 15 minutes, GitHub Actions runs `aztec-watcher run`
 2. Polls the npm registry for every package in your config
 3. Compares versions against `data/state.json`
 4. If anything changed, groups updates into one Slack message per release (Aztec is a monorepo, 60+ packages bump at once, you get one message not 60)
@@ -131,7 +131,7 @@ npm install @aztec/aztec.js@rc @aztec/accounts@rc @aztec/wallets@rc @aztec/pxe@r
 
 ## Custom packages
 
-Edit `aztec-watch.config.yaml` directly:
+Edit `aztec-watcher.config.yaml` directly:
 
 ```yaml
 packages:
@@ -169,7 +169,7 @@ node dist/cli/index.js run
 Crontab (every 15 min):
 
 ```bash
-*/15 * * * * cd /path/to/aztec-watcher && SLACK_WEBHOOK_URL=... node dist/cli/index.js run >> ~/.aztec-watch.log 2>&1
+*/15 * * * * cd /path/to/aztec-watcher && SLACK_WEBHOOK_URL=... node dist/cli/index.js run >> ~/.aztec-watcher.log 2>&1
 ```
 
 ---

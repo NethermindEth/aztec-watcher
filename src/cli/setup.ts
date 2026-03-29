@@ -46,7 +46,7 @@ export async function runSetup(): Promise<void> {
     p.log.info(listing);
   }
 
-  const configPath = resolve('aztec-watch.config.yaml');
+  const configPath = resolve('aztec-watcher.config.yaml');
   p.log.message(`  You can add or remove packages later in ${configPath}`);
 
   const selectedPackages = preselectedList;
@@ -67,7 +67,7 @@ export async function runSetup(): Promise<void> {
   // ── Write config ──────────────────────────────────────────────────────────
 
   const yaml = generateConfig(selectedPackages, tagChoice as string);
-  writeFileSync('aztec-watch.config.yaml', yaml, 'utf8');
+  writeFileSync('aztec-watcher.config.yaml', yaml, 'utf8');
 
   // Reset state so this fork starts fresh on first run
   const statePath = resolve('data/state.json');
@@ -101,7 +101,7 @@ export async function runSetup(): Promise<void> {
     process.env['SLACK_WEBHOOK_URL'] = webhookUrl as string;
 
     try {
-      const config = loadConfig('aztec-watch.config.yaml');
+      const config = loadConfig('aztec-watcher.config.yaml');
       const sinks = buildSinks(config);
       const testPkgs = config.packages.slice(0, 4);
       const tag = testPkgs[0]?.tags[0] ?? 'latest';
@@ -136,7 +136,7 @@ export async function runSetup(): Promise<void> {
   // ── Next steps ──────────────────────────────────────────────────────────
 
   p.log.step('Next: commit and push your config');
-  p.log.message('  git add aztec-watch.config.yaml data/state.json && git commit -m "configure aztec-watcher" && git push');
+  p.log.message('  git add aztec-watcher.config.yaml data/state.json && git commit -m "configure aztec-watcher" && git push');
   p.log.step('Add your Slack webhook as a GitHub secret');
   p.log.message('  Repo > Settings > Secrets > Actions > SLACK_WEBHOOK_URL');
   p.outro('You only get notified when a version actually changes.');

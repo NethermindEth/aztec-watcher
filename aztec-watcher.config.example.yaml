@@ -1,5 +1,5 @@
 # aztec-watcher config example
-# Run `aztec-watcher init` to generate your own aztec-watch.config.yaml
+# Run `aztec-watcher init` to generate your own aztec-watcher.config.yaml
 
 packages:
   - name: "@aztec/aztec.js"

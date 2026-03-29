@@ -29,7 +29,7 @@ function interpolateEnvVars(value: unknown): unknown {
 }
 
 export function loadConfig(configPath?: string): AppConfig {
-  const resolvedPath = resolve(configPath ?? 'aztec-watch.config.yaml');
+  const resolvedPath = resolve(configPath ?? 'aztec-watcher.config.yaml');
 
   let raw: string;
   try {
