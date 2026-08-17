@@ -1,8 +1,8 @@
 {
-  "@aztec/aztec.js@latest": "5.1.0",
-  "@aztec/accounts@latest": "5.1.0",
-  "@aztec/wallets@latest": "5.1.0",
-  "@aztec/pxe@latest": "5.1.0",
-  "@aztec/stdlib@latest": "5.1.0",
-  "@aztec/wallet-sdk@latest": "5.1.0"
+  "@aztec/aztec.js@latest": "5.2.0",
+  "@aztec/accounts@latest": "5.2.0",
+  "@aztec/wallets@latest": "5.2.0",
+  "@aztec/pxe@latest": "5.2.0",
+  "@aztec/stdlib@latest": "5.2.0",
+  "@aztec/wallet-sdk@latest": "5.2.0"
 }
